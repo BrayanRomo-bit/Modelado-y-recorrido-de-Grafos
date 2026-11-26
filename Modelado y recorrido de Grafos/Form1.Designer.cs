@@ -245,6 +245,7 @@
             txtNombreNodo.Name = "txtNombreNodo";
             txtNombreNodo.Size = new Size(274, 23);
             txtNombreNodo.TabIndex = 1;
+            txtNombreNodo.KeyDown += txtNombreNodo_KeyDown;
 
             btnAgregarNodo.BackColor = Color.FromArgb(16, 145, 110);
             btnAgregarNodo.FlatStyle = FlatStyle.Flat;
@@ -387,7 +388,7 @@
             btnCargarEjemplo.Name = "btnCargarEjemplo";
             btnCargarEjemplo.Size = new Size(274, 28);
             btnCargarEjemplo.TabIndex = 0;
-            btnCargarEjemplo.Text = "Restaurar Red Regional";
+            btnCargarEjemplo.Text = "Cargar Ejemplo";
             btnCargarEjemplo.UseVisualStyleBackColor = false;
             btnCargarEjemplo.Click += btnCargarEjemplo_Click;
 
@@ -400,7 +401,7 @@
             btnLimpiarGrafo.Name = "btnLimpiarGrafo";
             btnLimpiarGrafo.Size = new Size(274, 28);
             btnLimpiarGrafo.TabIndex = 1;
-            btnLimpiarGrafo.Text = "Limpiar Grafo";
+            btnLimpiarGrafo.Text = "Nuevo Grafo (Desde 0)";
             btnLimpiarGrafo.UseVisualStyleBackColor = false;
             btnLimpiarGrafo.Click += btnLimpiarGrafo_Click;
 
@@ -425,6 +426,9 @@
             panelGrafo.TabIndex = 0;
             panelGrafo.Paint += panelGrafo_Paint;
             panelGrafo.Resize += panelGrafo_Resize;
+            panelGrafo.MouseDown += panelGrafo_MouseDown;
+            panelGrafo.MouseMove += panelGrafo_MouseMove;
+            panelGrafo.MouseUp += panelGrafo_MouseUp;
 
             tabResultados.Controls.Add(tabTraza);
             tabResultados.Controls.Add(tabMatriz);

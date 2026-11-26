@@ -8,6 +8,7 @@ namespace Modelado_y_recorrido_de_Grafos
         private readonly AlgoritmoDijkstra _dijkstra = new();
         private readonly RenderizadorGrafo _renderizador = new();
         private ResultadoDijkstra? _ultimoResultado;
+        private NodoGrafo? _nodoArrastrado;
 
         public Form1()
         {
@@ -74,6 +75,10 @@ namespace Modelado_y_recorrido_de_Grafos
             else if (combo.Items.Count > 0)
             {
                 combo.SelectedIndex = 0;
+            }
+            else
+            {
+                combo.SelectedIndex = -1;
             }
         }
 
@@ -295,6 +300,37 @@ namespace Modelado_y_recorrido_de_Grafos
         private void panelGrafo_Resize(object? sender, EventArgs e)
         {
             panelGrafo.Invalidate();
+        }
+
+        private void txtNombreNodo_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                btnAgregarNodo_Click(sender, e);
+            }
+        }
+
+        private void panelGrafo_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _nodoArrastrado = _renderizador.ObtenerNodoEnPunto(panelGrafo.ClientRectangle, _grafo, e.Location);
+            }
+        }
+
+        private void panelGrafo_MouseMove(object? sender, MouseEventArgs e)
+        {
+            if (_nodoArrastrado != null && e.Button == MouseButtons.Left)
+            {
+                _renderizador.ActualizarPosicionDesdePunto(panelGrafo.ClientRectangle, _nodoArrastrado, e.Location);
+                panelGrafo.Invalidate();
+            }
+        }
+
+        private void panelGrafo_MouseUp(object? sender, MouseEventArgs e)
+        {
+            _nodoArrastrado = null;
         }
     }
 }

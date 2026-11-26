@@ -25,7 +25,7 @@ namespace Modelado_y_recorrido_de_Grafos
                     Alignment = StringAlignment.Center,
                     LineAlignment = StringAlignment.Center
                 };
-                g.DrawString("No hay nodos en el grafo.", fuenteVacio, pincelVacio, area, formatoVacio);
+                g.DrawString("Grafo vacio. Agregue nodos y rutas o presione Cargar Ejemplo.", fuenteVacio, pincelVacio, area, formatoVacio);
                 return;
             }
 
@@ -121,6 +121,51 @@ namespace Modelado_y_recorrido_de_Grafos
                     centro.X - (tamNombre.Width / 2F),
                     centro.Y + radio + 4F);
             }
+        }
+
+        public NodoGrafo? ObtenerNodoEnPunto(Rectangle area, GrafoPonderado grafo, Point punto)
+        {
+            if (area.Width < 40 || area.Height < 40 || grafo.Nodos.Count == 0)
+            {
+                return null;
+            }
+
+            int margen = Math.Max(32, Math.Min(area.Width, area.Height) / 10);
+            int anchoUtil = Math.Max(1, area.Width - (margen * 2));
+            int altoUtil = Math.Max(1, area.Height - (margen * 2));
+            int radio = Math.Clamp(Math.Min(area.Width, area.Height) / 22, 16, 26);
+
+            foreach (NodoGrafo nodo in grafo.Nodos.Reverse())
+            {
+                float x = area.Left + margen + (float)(nodo.PosX * anchoUtil);
+                float y = area.Top + margen + (float)(nodo.PosY * altoUtil);
+                float dx = punto.X - x;
+                float dy = punto.Y - y;
+                if ((dx * dx) + (dy * dy) <= (radio + 4) * (radio + 4))
+                {
+                    return nodo;
+                }
+            }
+
+            return null;
+        }
+
+        public void ActualizarPosicionDesdePunto(Rectangle area, NodoGrafo nodo, Point punto)
+        {
+            if (area.Width < 40 || area.Height < 40)
+            {
+                return;
+            }
+
+            int margen = Math.Max(32, Math.Min(area.Width, area.Height) / 10);
+            int anchoUtil = Math.Max(1, area.Width - (margen * 2));
+            int altoUtil = Math.Max(1, area.Height - (margen * 2));
+
+            double normX = (punto.X - area.Left - margen) / (double)anchoUtil;
+            double normY = (punto.Y - area.Top - margen) / (double)altoUtil;
+
+            nodo.PosX = Math.Clamp(normX, 0.04, 0.96);
+            nodo.PosY = Math.Clamp(normY, 0.06, 0.94);
         }
 
         private static HashSet<(string, string)> ObtenerAristasEnRuta(ResultadoDijkstra? resultado)

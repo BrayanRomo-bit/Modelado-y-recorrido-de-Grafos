@@ -44,9 +44,10 @@ namespace Modelado_y_recorrido_de_Grafos
 
             if (posX < 0 || posY < 0)
             {
-                double angulo = (_nodos.Count * 2.0 * Math.PI) / Math.Max(6, _nodos.Count + 1);
-                posX = 0.5 + 0.34 * Math.Cos(angulo);
-                posY = 0.5 + 0.34 * Math.Sin(angulo);
+                double angulo = _nodos.Count * 2.399963229728653;
+                double radio = _nodos.Count == 0 ? 0.0 : 0.22 + 0.16 * ((_nodos.Count % 3) / 2.0);
+                posX = 0.5 + radio * Math.Cos(angulo);
+                posY = 0.5 + radio * Math.Sin(angulo);
             }
 
             var nodo = new NodoGrafo(_siguienteId++, limpio, Math.Clamp(posX, 0.08, 0.92), Math.Clamp(posY, 0.10, 0.90));
