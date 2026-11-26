@@ -1,4 +1,7 @@
 using System.Reflection;
+using Modelado_y_recorrido_de_Grafos.Algoritmos;
+using Modelado_y_recorrido_de_Grafos.Modelos;
+using Modelado_y_recorrido_de_Grafos.Renderizado;
 
 namespace Modelado_y_recorrido_de_Grafos
 {

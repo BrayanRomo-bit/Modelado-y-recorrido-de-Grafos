@@ -1,3 +1,5 @@
+using Modelado_y_recorrido_de_Grafos.Pruebas;
+
 namespace Modelado_y_recorrido_de_Grafos
 {
     internal static class Program

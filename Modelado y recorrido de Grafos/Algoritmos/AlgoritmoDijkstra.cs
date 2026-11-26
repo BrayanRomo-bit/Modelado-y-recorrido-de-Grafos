@@ -1,6 +1,7 @@
 using System.Text;
+using Modelado_y_recorrido_de_Grafos.Modelos;
 
-namespace Modelado_y_recorrido_de_Grafos
+namespace Modelado_y_recorrido_de_Grafos.Algoritmos
 {
     public class AlgoritmoDijkstra
     {

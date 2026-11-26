@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Modelado_y_recorrido_de_Grafos
+namespace Modelado_y_recorrido_de_Grafos.Modelos
 {
     public class GrafoPonderado
     {

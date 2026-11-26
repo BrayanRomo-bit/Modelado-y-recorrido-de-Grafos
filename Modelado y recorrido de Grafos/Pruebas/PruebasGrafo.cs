@@ -1,4 +1,7 @@
-namespace Modelado_y_recorrido_de_Grafos
+using Modelado_y_recorrido_de_Grafos.Algoritmos;
+using Modelado_y_recorrido_de_Grafos.Modelos;
+
+namespace Modelado_y_recorrido_de_Grafos.Pruebas
 {
     public static class PruebasGrafo
     {

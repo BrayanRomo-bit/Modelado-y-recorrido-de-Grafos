@@ -1,7 +1,9 @@
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using Modelado_y_recorrido_de_Grafos.Algoritmos;
+using Modelado_y_recorrido_de_Grafos.Modelos;
 
-namespace Modelado_y_recorrido_de_Grafos
+namespace Modelado_y_recorrido_de_Grafos.Renderizado
 {
     public class RenderizadorGrafo
     {
