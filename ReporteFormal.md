@@ -1,28 +1,48 @@
-# Reporte Formal - Tarea 4.3: Modelado y Recorrido de Grafos
+# Reporte Formal de Practica: Modelado y Recorrido de Grafos
 
-## 1. Formulacion del Problema
-
-Se modela una red de distribucion logistica regional en Mexico mediante un grafo ponderado no dirigido $G = (V, E, w)$, donde:
-
-- $V$ es el conjunto de 7 nodos que representan centros de distribucion: `CDMX`, `Puebla`, `Veracruz`, `Queretaro`, `Leon`, `Guadalajara` y `Monterrey`.
-- $E$ es el conjunto de 10 aristas bidireccionales que representan las rutas carreteras disponibles entre ciudades.
-- $w: E \to \mathbb{R}^+$ asigna a cada arista su distancia en kilometros (peso positivo).
-
-El objetivo de optimizacion consiste en determinar la ruta de menor costo acumulado (distancia minima en kilometros) entre un nodo origen $s \in V$ y un nodo destino $t \in V$, utilizando el **Algoritmo de Dijkstra**.
-
-Formalmente, se busca minimizar:
-
-$$\min_{P = (v_0, v_1, \dots, v_k)} \sum_{i=0}^{k-1} w(v_i, v_{i+1})$$
-
-sujeto a $v_0 = s$, $v_k = t$, y $(v_i, v_{i+1}) \in E$.
+| Campo | Detalle |
+| :--- | :--- |
+| **Actividad** | Tarea 4.3: Practica de aplicacion - Modelado y recorrido de Grafos |
+| **Problema Modelado** | Red de distribucion logistica regional mediante grafo ponderado no dirigido |
+| **Algoritmo Aplicado** | Algoritmo de Dijkstra (camino mas corto desde origen unico) |
+| **Plataforma** | C# / .NET 10 Windows Forms |
+| **Fecha** | 26 de noviembre de 2026 |
 
 ---
 
-## 2. Representacion del Grafo
+## 1. Resumen Ejecutivo
 
-### 2.1 Matriz de Adyacencia
+El presente documento describe la formulacion matematica, el modelado computacional, la representacion estructural y los resultados de optimizacion obtenidos al resolver el problema de ruta minima sobre una red de distribucion regional de 7 ciudades conectadas por 10 tramos carreteros ponderados por distancia en kilometros.
 
-La matriz $M \in (\mathbb{R}^+ \cup \{0, \infty\})^{7 \times 7}$ almacena el peso directo entre cada par de ciudades (`INF` indica ausencia de conexion directa):
+La solucion de software permite tanto analizar la red regional precargada como construir grafos personalizados desde cero, visualizar la matriz y lista de adyacencia en tiempo real, y auditar paso a paso la traza de ejecucion del algoritmo de Dijkstra.
+
+---
+
+## 2. Formulacion Matematica del Problema
+
+La red logistica se modela como un grafo ponderado no dirigido:
+
+$$G = (V, E, w)$$
+
+donde:
+
+- $V = \{\text{CDMX}, \text{Puebla}, \text{Veracruz}, \text{Queretaro}, \text{Leon}, \text{Guadalajara}, \text{Monterrey}\}$, con $|V| = 7$ vertices.
+- $E \subseteq \{\{u, v\} \mid u, v \in V, u \neq v\}$, con $|E| = 10$ aristas bidireccionales.
+- $w: E \to \mathbb{R}^+$ asigna a cada enlace carretero su distancia en kilometros ($w(u, v) > 0$).
+
+Dado un nodo origen $s \in V$ y un nodo destino $t \in V$, el problema de optimizacion consiste en encontrar una trayectoria simple $P = (v_0, v_1, \dots, v_k)$ con $v_0 = s$ y $v_k = t$ que minimice el costo acumulado:
+
+$$\min_{P} \; C(P) = \sum_{i=0}^{k-1} w(v_i, v_{i+1})$$
+
+sujeto a $(v_i, v_{i+1}) \in E$ para todo $0 \le i < k$, y $d(v) \ge 0$ para todo $v \in V$.
+
+---
+
+## 3. Modelado de la Red de Distribucion
+
+### 3.1 Matriz de Adyacencia
+
+La matriz $M \in (\mathbb{R}^+ \cup \{0, \infty\})^{7 \times 7}$ representa los pesos directos entre cada par de nodos. Debido a que el grafo es no dirigido, la matriz es simetrica ($M_{i,j} = M_{j,i}$) y su diagonal principal es nula ($M_{i,i} = 0$). El valor `INF` denota ausencia de conexion directa.
 
 | Nodo | CDMX | Puebla | Veracruz | Queretaro | Leon | Guadalajara | Monterrey |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -34,24 +54,30 @@ La matriz $M \in (\mathbb{R}^+ \cup \{0, \infty\})^{7 \times 7}$ almacena el pes
 | **Guadalajara** | 545 | INF | INF | INF | 220 | 0 | 790 |
 | **Monterrey** | INF | INF | INF | 710 | 690 | 790 | 0 |
 
-### 2.2 Lista de Adyacencia
+### 3.2 Lista de Adyacencia
 
-- **CDMX** -> Guadalajara (545 km), Puebla (130 km), Queretaro (215 km)
-- **Puebla** -> CDMX (130 km), Veracruz (275 km)
-- **Veracruz** -> Puebla (275 km), Queretaro (530 km)
-- **Queretaro** -> CDMX (215 km), Leon (170 km), Monterrey (710 km), Veracruz (530 km)
-- **Leon** -> Guadalajara (220 km), Monterrey (690 km), Queretaro (170 km)
-- **Guadalajara** -> CDMX (545 km), Leon (220 km), Monterrey (790 km)
-- **Monterrey** -> Guadalajara (790 km), Leon (690 km), Queretaro (710 km)
+Cada vertice mantiene la lista ordenada de sus vecinos alcanzables en un salto junto con el peso de la arista correspondiente:
+
+| Vertice | Vecinos Directos (Destino y Distancia) |
+| :--- | :--- |
+| **CDMX** | Guadalajara (545 km), Puebla (130 km), Queretaro (215 km) |
+| **Puebla** | CDMX (130 km), Veracruz (275 km) |
+| **Veracruz** | Puebla (275 km), Queretaro (530 km) |
+| **Queretaro** | CDMX (215 km), Leon (170 km), Monterrey (710 km), Veracruz (530 km) |
+| **Leon** | Guadalajara (220 km), Monterrey (690 km), Queretaro (170 km) |
+| **Guadalajara** | CDMX (545 km), Leon (220 km), Monterrey (790 km) |
+| **Monterrey** | Guadalajara (790 km), Leon (690 km), Queretaro (710 km) |
 
 ---
 
-## 3. Traza de Ejecucion del Algoritmo de Dijkstra
+## 4. Traza de Ejecucion del Algoritmo de Dijkstra
 
-### Caso de Estudio: Origen = `CDMX`, Destino = `Monterrey`
+### 4.1 Caso de Estudio Principal: Origen = `CDMX`, Destino = `Monterrey`
 
-| Paso | Nodo Actual | Costo Acumulado | Vector de Distancias (km) | Accion Realizada |
-| :---: | :---: | :---: | :--- | :--- |
+En cada iteracion el algoritmo selecciona el vertice no visitado con menor distancia acumulada, lo marca como definitivo y relaja sus aristas salientes.
+
+| Paso | Nodo Seleccionado | Costo Acumulado | Vector de Distancias (km) | Accion Realizada |
+| :---: | :--- | :---: | :--- | :--- |
 | 0 | CDMX | 0 km | CDMX=0, Puebla=INF, Veracruz=INF, Queretaro=INF, Leon=INF, Guadalajara=INF, Monterrey=INF | Inicializacion: distancia(CDMX) = 0, resto = INF. |
 | 1 | CDMX | 0 km | CDMX=0, Puebla=130, Veracruz=INF, Queretaro=215, Leon=INF, Guadalajara=545, Monterrey=INF | Visita CDMX (0 km). Relaja: Guadalajara: INF -> 545 (via CDMX); Puebla: INF -> 130 (via CDMX); Queretaro: INF -> 215 (via CDMX). |
 | 2 | Puebla | 130 km | CDMX=0, Puebla=130, Veracruz=405, Queretaro=215, Leon=INF, Guadalajara=545, Monterrey=INF | Visita Puebla (130 km). Relaja: Veracruz: INF -> 405 (via Puebla). |
@@ -61,34 +87,56 @@ La matriz $M \in (\mathbb{R}^+ \cup \{0, \infty\})^{7 \times 7}$ almacena el pes
 | 6 | Guadalajara | 545 km | CDMX=0, Puebla=130, Veracruz=405, Queretaro=215, Leon=385, Guadalajara=545, Monterrey=925 | Visita Guadalajara (545 km). Sin mejoras en vecinos. |
 | 7 | Monterrey | 925 km | CDMX=0, Puebla=130, Veracruz=405, Queretaro=215, Leon=385, Guadalajara=545, Monterrey=925 | Visita Monterrey (925 km). Destino alcanzado. |
 
+### 4.2 Caso Secundario: Origen = `Puebla`, Destino = `Guadalajara`
+
+- Ruta optima calculada: `Puebla -> CDMX -> Guadalajara`
+- Distancia total minima: **675 km** (`130 km + 545 km`)
+- Ruta alternativa descartada: `Puebla -> CDMX -> Queretaro -> Leon -> Guadalajara` (**735 km**)
+
 ---
 
-## 4. Resultados de Optimizacion y Pruebas
+## 5. Resultados de Optimizacion
 
-### 4.1 Resultados de Optimizacion
+| Trayecto Evaluado | Ruta Optima Obtenida | Distancia Minima | Alternativa Suboptima Comparada | Ahorro Logrado |
+| :--- | :--- | :---: | :--- | :---: |
+| `CDMX` -> `Monterrey` | `CDMX -> Queretaro -> Monterrey` | **925 km** | `CDMX -> Queretaro -> Leon -> Monterrey` (1075 km) | 150 km (13.95%) |
+| `CDMX` -> `Monterrey` | `CDMX -> Queretaro -> Monterrey` | **925 km** | `CDMX -> Guadalajara -> Monterrey` (1335 km) | 410 km (30.71%) |
+| `Puebla` -> `Guadalajara` | `Puebla -> CDMX -> Guadalajara` | **675 km** | `Puebla -> CDMX -> Queretaro -> Leon -> Guadalajara` (735 km) | 60 km (8.16%) |
 
-- **Ruta optima `CDMX` -> `Monterrey`**: `CDMX -> Queretaro -> Monterrey` con una distancia total de **925 km** (superando alternativas como `CDMX -> Queretaro -> Leon -> Monterrey` de 1075 km y `CDMX -> Guadalajara -> Monterrey` de 1335 km).
-- **Ruta optima `Puebla` -> `Guadalajara`**: `Puebla -> CDMX -> Guadalajara` con una distancia total de **675 km** (superando la ruta por Queretaro y Leon de 735 km).
+El algoritmo garantiza optimalidad global al operar sobre pesos estrictamente positivos ($w(e) > 0$) y converge en $O(|V|^2)$ operaciones sobre la representacion actual.
 
-### 4.2 Arquitectura de la Solucion de Software
+---
 
-La aplicacion Windows Forms (.NET 10) implementa separacion de responsabilidades y diseno responsivo:
+## 6. Arquitectura de la Solucion de Software
 
-- `NodoGrafo`, `AristaGrafo`, `GrafoPonderado`: modelado del grafo, validaciones y generacion de matriz y lista de adyacencia.
-- `PasoDijkstra`, `ResultadoDijkstra`, `AlgoritmoDijkstra`: ejecucion de Dijkstra con captura completa de traza.
-- `RenderizadorGrafo`: dibujo vectorial escalable que adapta posiciones y tamanos al redimensionar la ventana.
-- `Form1` y `Form1.Designer.cs`: interfaz grafica responsiva con paneles ajustables (`SplitContainer`), tabla de traza, tabla de matriz de adyacencia y visor de lista de adyacencia.
+El proyecto se estructuro de forma modular por responsabilidad en carpetas y sub-namespaces:
 
-### 4.3 Verificacion Automatizada
+| Carpeta / Archivo | Responsabilidad Principal |
+| :--- | :--- |
+| `Modelos/NodoGrafo.cs` | Representacion de cada vertice con identificador, nombre y coordenadas normalizadas. |
+| `Modelos/AristaGrafo.cs` | Representacion de enlaces ponderados con validacion de peso positivo. |
+| `Modelos/GrafoPonderado.cs` | Gestion de nodos y aristas, generacion de matriz/lista de adyacencia y carga del ejemplo regional. |
+| `Algoritmos/PasoDijkstra.cs` | Instantanea de cada iteracion del algoritmo para construir la traza de ejecucion. |
+| `Algoritmos/ResultadoDijkstra.cs` | Encapsulamiento de la ruta optima, costo total, vector de distancias y traza completa. |
+| `Algoritmos/AlgoritmoDijkstra.cs` | Implementacion del algoritmo de Dijkstra y formateo del vector de distancias. |
+| `Renderizado/RenderizadorGrafo.cs` | Dibujo vectorial responsivo, resaltado de ruta optima y soporte para arrastrar nodos con el mouse. |
+| `Pruebas/PruebasGrafo.cs` | Bateria de pruebas unitarias automatizadas invocables por linea de comandos (`--test`). |
+| `Form1.Designer.cs` / `Form1.cs` | Interfaz grafica responsiva disenada en `Form1.cs [Design]`, creacion desde cero y carga de ejemplo. |
 
-Ejecutado mediante `dotnet run -- --test`:
+---
 
-1. Carga de red regional y conteo de nodos/aristas: PASS
-2. Simetria y valores de matriz de adyacencia: PASS
-3. Lista de adyacencia consistente: PASS
-4. Dijkstra CDMX a Monterrey (925 km): PASS
-5. Dijkstra Puebla a Guadalajara (675 km): PASS
-6. Nodo desconectado sin ruta: PASS
-7. Actualizacion de arista y eliminacion de nodo: PASS
+## 7. Verificacion y Pruebas Automatizadas
 
-Resultado: **7 de 7 pruebas exitosas**.
+Ejecucion verificada mediante `dotnet run -- --test`:
+
+| # | Caso de Prueba | Resultado |
+| :---: | :--- | :---: |
+| 1 | Carga de red regional y conteo de nodos/aristas (7 nodos, 10 aristas) | PASS |
+| 2 | Simetria y valores de matriz de adyacencia | PASS |
+| 3 | Consistencia de la lista de adyacencia | PASS |
+| 4 | Dijkstra `CDMX` a `Monterrey` (925 km, ruta de 3 nodos) | PASS |
+| 5 | Dijkstra `Puebla` a `Guadalajara` (675 km, ruta de 3 nodos) | PASS |
+| 6 | Deteccion de nodo desconectado sin ruta (distancia infinita) | PASS |
+| 7 | Actualizacion de arista y eliminacion de nodo | PASS |
+
+**Resumen:** 7 pruebas ejecutadas, 7 exitosas, 0 fallidas.
